@@ -557,28 +557,6 @@ class Main
         return $this;
     }
 
-    public function cleanNotInGroup($group)
-    {
-        if ($this->fileNameProtection) {
-            $motif = ($group) ? 'cache_' . md5($group) . '_' : 'cache_';
-        } else {
-            $motif = ($group) ? 'cache_' . $group . '_' : 'cache_';
-        }
-
-        $unlink = $this->unlink;
-
-        $this->applyDir(
-            function($filePath) use ($motif, $unlink)
-            {
-                $fileName = basename($filePath);
-                if (strncmp($fileName, $motif, strlen($motif)) !== 0) {
-                    $unlink($filePath);
-                }
-            },
-            $this->cacheDir
-        );
-    }
-
     public function extendLife($id, $group = 'default')
     {
         $filePath = $this->getFilePath($id, $group);
