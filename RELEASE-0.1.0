@@ -1,0 +1,9 @@
+First release includes the following basic features:
+
+ - get
+ - save
+ - remove
+ - removeGroup
+ - write protection
+ - read protection
+ - nested directories

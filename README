@@ -1,0 +1,9 @@
+Cache_Lite is a simple, fast cache system
+
+This is a port of Cache_Lite from PEAR.
+
+Cache_Lite uses the filesystem to cache values. No separate services or
+daemons are required to run Cache_Lite.
+
+Cache_Lite supports cache groups so you can easily invalidate a group of
+cached values.
