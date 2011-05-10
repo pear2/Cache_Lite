@@ -549,6 +549,7 @@ class Main
 
         foreach ($iterator as $path) {
             if (   $path->isFile()
+                && strncmp($path->getFilename(), 'cache_', 6) === 0
                 && $lifeTime > 0
                 && time() - $path->getMTime() > $this->lifeTime
             ) {
