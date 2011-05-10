@@ -510,23 +510,25 @@ class Main
             $motif = ($group) ? 'cache_' . $group . '_' : 'cache_';
         }
 
-        $unlink = $this->unlink;
-
-        $this->applyDir(
-            function($filePath) use ($motif, $unlink)
-            {
-                $fileName = basename($filePath);
-                if (strncmp($fileName, $motif, strlen($motif)) === 0) {
-                    $unlink($filePath);
-                }
-            },
-            $this->cacheDir
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->cacheDir),
+            RecursiveIteratorIterator::CHILD_FIRST
         );
+
+        foreach ($iterator as $path) {
+            if ($path->isFile()) {
+                $fileName = $path->getFilename();
+                if (strncmp($fileName, $motif, strlen($motif)) === 0) {
+                    $this->unlink($path->getPathname());
+                }
+            }
+        }
 
         return $this;
     }
 
     // }}}
+    // {{{ cleanOld()
 
     /**
      * Cleans up old files in the cache directory
@@ -540,22 +542,24 @@ class Main
      */
     public function cleanOld()
     {
-        $lifeTime = $this->lifeTime;
-        $unlink = $this->unlink;
-        $this->applyDir(
-            function($filePath) use ($lifeTime, $unlink)
-            {
-                if (   $lifeTime > 0
-                    && time() - filemtime($filePath) > $lifeTime
-                ) {
-                    $unlink($filePath);
-                }
-            },
-            $this->cacheDir
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->cacheDir),
+            RecursiveIteratorIterator::CHILD_FIRST
         );
+
+        foreach ($iterator as $path) {
+            if (   $path->isFile()
+                && $lifeTime > 0
+                && time() - $path->getMTime() > $this->lifeTime
+            ) {
+                $this->unlink($path->getPathname());
+            }
+        }
 
         return $this;
     }
+
+    // }}}
 
     public function extendLife($id, $group = 'default')
     {
@@ -713,31 +717,6 @@ class Main
         $this->write($filePath, $data);
         $dataRead = $this->read($filePath);
         return ($dataRead === $data);
-    }
-
-    protected function applyDir($apply, $dir, $group = null)
-    {
-        if (!($dh = opendir($dir))) {
-            throw new FileException(
-                'Unable to open directory \'' . $dir . '\'.',
-                0,
-                $dir
-            );
-        }
-
-        while ($file = readdir($dh)) {
-            if (   $file != '.'
-                && $file != '..'
-                && substr($file, 0, 6) == 'cache_'
-            ) {
-                $filePath = $dir . $file;
-                if (is_file($filePath)) {
-                    $apply($group, $filePath);
-                } elseif (is_dir($filePath) && $this->nestedDirectoryLevel > 0) {
-                    $this->applyDir($apply, $filePath . '/', $group);
-                }
-            }
-        }
     }
 
     // {{{ hash()
